@@ -1,0 +1,7 @@
+bs4
+numpy
+argparse
+h5py
+tqdm
+astropy
+torch

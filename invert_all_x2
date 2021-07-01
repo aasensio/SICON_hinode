@@ -1,0 +1,2 @@
+python neural_hinode.py --input 11195_0.h5 --output results_x2/inv_11195_0_x2.h5 --normalize 0 100 300 350 --device cpu --resolution 2
+python neural_hinode.py --input 11560_0.h5 --output results_x2/inv_11560_0_x2.h5 --normalize 400 450 0 100 --device cpu --resolution 2
