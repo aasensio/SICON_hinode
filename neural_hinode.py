@@ -10,7 +10,7 @@ import sys
 import time
 sys.path.append('models')
 
-import model_x1
+import model_x1_improved as model_x1
 import model_x2
 
 
@@ -54,8 +54,8 @@ class deep_3d_inversion(object):
     def load_weights(self):
 
         if (self.superresolution == 1):
-            self.checkpoint = 'models/weights_x1.pth'
-            self.normalization = 'models/normalization_x1.npz'
+            self.checkpoint = 'models/weights_x1_improved.pth'
+            self.normalization = 'models/normalization_x1_improved.npz'
             print("Generating output x1")
             print("Defining inversion NN...")
             self.model = model_x1.block(n_input_channels=112*4, n_output_channels=7*7).to(self.device)
@@ -142,6 +142,7 @@ class deep_3d_inversion(object):
                 extra = 0
 
             print(f"Doing in {n} parts : {idx}")
+
 
             for i in range(n+extra):
                 input = torch.as_tensor(self.stokes[0:1,:,idx[i]:idx[i+1],:].astype('float32')).to(self.device)
