@@ -16,17 +16,17 @@ def listFD(url, ext=''):
 def download(url, output, downloader):
     ext = 'fits'
     
-    # print("Finding files to download...")
+    print("Finding files to download...")
 
-    # fout = open('file_list', 'w')
-    # for file in listFD(url, ext):
-    #     fout.write('{0}\n'.format(file))
+    fout = open('file_list', 'w')
+    for file in listFD(url, ext):
+        fout.write('{0}\n'.format(file))
 
-    # fout.close()
+    fout.close()
 
     print("Downloading files...")
     if (downloader == 'wget'):
-        os.system("cat file_list | xargs -n 1 -P 8 wget -q")
+        os.system("cat file_list | xargs -n 1 -P 8 wget -q --show-progress")
     if (downloader == 'curl'):
         os.system("cat file_list | xargs -n 1 -P 8 curl -O")
 
@@ -34,9 +34,11 @@ def download(url, output, downloader):
     files = glob.glob('*.fits')
     files.sort()
     nfiles = len(files)
+    f = fits.open(files[0])
+    _, nx, _ = f[0].data.shape
 
     f = h5py.File(output, 'w')
-    db = f.create_dataset('stokes', shape=(4,nfiles,408,112))
+    db = f.create_dataset('stokes', shape=(4, nfiles, nx, 112))
 
     for i in tqdm(range(nfiles)):
         ff = fits.open(files[i])

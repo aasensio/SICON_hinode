@@ -88,8 +88,8 @@ class deep_3d_inversion(object):
 
         if (parsed['normalize'] is not None):
             x0, x1, y0, y1 = parsed['normalize']
-            print(f"Data will be normalized to median value in box : {x0}-{x1},{y0}-{y1}")
             stokes_median = np.median(self.stokes[0,x0:x1,y0:y1,0:3])
+            print(f"Data will be normalized to the median value in the box [{x0}-{x1},{y0}-{y1}] = {stokes_median}")            
         else:
             print(f"Data is already normalized")
             stokes_median = 1.0

@@ -32,14 +32,17 @@ The code needs as input an HDF5 file with the Stokes profiles downloaded from th
 and will produce as output another HDF5 file with the resulting physical conditions.
 The code is run as:
 
-    python neural_inversion.py --input input.h5 --output output.h5 --normalize 0 100 0 100 --device cpu --resolution 1
+    python neural_hinode.py --input input.h5 --output output.h5 --normalize 0 100 0 100 --device cpu --resolution 1
 
 The arguments are the input and output files, together with the definition of a box which is used 
-as the quiet Sun for normalizing the Stokes profiles. Additionally, you can decide to do
+as the quiet Sun for normalizing the Stokes profiles. You should check a proper window for this normalization
+to be correct. Additionally, you can decide to do
 the computation on CPU or GPU. Calculations on GPUs will be faster but the field-of-view
 is memory limited. For large maps, we recommend using CPU. Finally, `resolution 1` allows you to output the
 results with the same pixel size as the observations, while `resolution 2` upsamples the solution to
 double resolution. Use it with care.
+
+The results are: T [K], vz [km/s], h [km], log P [cgs], (B_x^2-B_y^2)^{1/2} [kG], (B_x B_y)^{1/2} [kG], Bx [kG], By [kG] and Bz [kG].
 
 
 ## Requirements
