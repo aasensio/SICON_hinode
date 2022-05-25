@@ -1,14 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.utils.data
-# from ipdb import set_trace as stop
 
 class ConvBlock(nn.Module):
-    def __init__(self, inplanes, outplanes, kernel_size=3, stride=1, upsample=False, bn=True, activation=True):
+    def __init__(self, inplanes, outplanes, kernel_size=3, stride=1, upsample=False, activation=True):
         super(ConvBlock, self).__init__()
 
-        self.upsample = upsample
-        self.use_bn = bn
+        self.upsample = upsample        
         self.use_activation = activation
 
         if (upsample):
@@ -16,21 +14,13 @@ class ConvBlock(nn.Module):
         else:
             self.conv = nn.Conv2d(inplanes, outplanes, kernel_size=kernel_size, stride=stride)
 
-        nn.init.kaiming_normal_(self.conv.weight)
-        nn.init.constant_(self.conv.bias, 0.0)
-
         self.reflection = nn.ReflectionPad2d(int((kernel_size-1)/2))
-        if (self.use_bn):
-            self.bn = nn.BatchNorm2d(inplanes)
 
         if (self.use_activation):
             self.activation = nn.ELU(inplace=True)
 
     def forward(self, x):
-        if (self.use_bn):
-            out = self.bn(x)
-        else:
-            out = x.clone()
+        out = x.clone()
         
         if (self.use_activation):
             out = self.activation(out)
@@ -46,7 +36,7 @@ class ConvBlock(nn.Module):
 class block(nn.Module):
     def __init__(self, n_input_channels, n_output_channels):
         super(block, self).__init__()
-        self.A01 = ConvBlock(n_input_channels, 32, kernel_size=3, bn=False, activation=False)
+        self.A01 = ConvBlock(n_input_channels, 32, kernel_size=3, activation=False)
         
         self.C01 = ConvBlock(32, 64, stride=2)
         self.C02 = ConvBlock(64, 64)
@@ -88,8 +78,6 @@ class block(nn.Module):
         self.C73 = ConvBlock(64, 64)
 
         self.C74 = nn.Conv2d(64, n_output_channels, kernel_size=1, stride=1)
-        nn.init.kaiming_normal_(self.C74.weight)
-        nn.init.constant_(self.C74.bias, 0.0)
 
         
     def forward(self, x):

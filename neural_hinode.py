@@ -10,7 +10,7 @@ import sys
 import time
 sys.path.append('models')
 
-import model_x1_improved as model_x1
+import model_x1
 import model_x2
 
 
@@ -54,8 +54,8 @@ class deep_3d_inversion(object):
     def load_weights(self):
 
         if (self.superresolution == 1):
-            self.checkpoint = 'models/weights_x1_improved.pth'
-            self.normalization = 'models/normalization_x1_improved.npz'
+            self.checkpoint = 'models/weights_x1.pth'
+            self.normalization = 'models/normalization_x1.npz'
             print("Generating output x1")
             print("Defining inversion NN...")
             self.model = model_x1.block(n_input_channels=112*4, n_output_channels=7*7).to(self.device)
@@ -66,9 +66,7 @@ class deep_3d_inversion(object):
             print("Generating output x2")
             print("Defining inversion NN...")
             self.model = model_x2.block(n_input_channels=112*4, n_output_channels=7*7).to(self.device)
-
-        
-                                
+                                        
         tmp = torch.load(self.checkpoint, map_location=lambda storage, loc: storage)
                                                 
         self.model.load_state_dict(tmp['inv_state_dict'])        
@@ -78,7 +76,7 @@ class deep_3d_inversion(object):
         tmp = np.load(self.normalization)
         self.phys_min, self.phys_max = tmp['minimum'], tmp['maximum']
 
-    def test_hinode(self, parsed):
+    def invert_hinode(self, parsed):
 
         print(f"Reading input file {parsed['input']}")
 
@@ -243,6 +241,6 @@ if (__name__ == '__main__'):
 
         deep_network = deep_3d_inversion(parsed)
 
-        deep_network.test_hinode(parsed)
+        deep_network.invert_hinode(parsed)
     else:
         print(f"Output file {parsed['output']} already exists. Remove it to recompute.")

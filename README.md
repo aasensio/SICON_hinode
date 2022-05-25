@@ -44,6 +44,12 @@ double resolution. Use it with care.
 
 The results are: T [K], vz [km/s], h [km], log P [cgs], (B_x^2-B_y^2)^{1/2} [kG], (B_x B_y)^{1/2} [kG], Bx [kG], By [kG] and Bz [kG].
 
+## Training
+
+We provide the scripts for retraining your models in case you want to tweak the neural networks. You can download
+the training data from [here](https://cloud.iac.es/index.php/s/zyx8oK7EFfBX5Nj). The scripts are found in the
+`training` directory. Do any modification and run them. You should need to create the directories for the
+output.
 
 ## Requirements
     bs4
