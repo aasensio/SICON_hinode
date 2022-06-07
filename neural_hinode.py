@@ -206,13 +206,13 @@ class deep_3d_inversion(object):
     # This quantity is obviously always >=0
         D = np.sqrt(A**2 + 4.0*B**2)
         
-        ind_pos = np.where(B >0)
+        ind_pos = np.where(B > 0)
         ind_neg = np.where(B < 0)
         ind_zero = np.where(B == 0)
         Bx[ind_pos] = np.sign(db_BxBy[:][ind_pos]) * np.sqrt(A[ind_pos] + D[ind_pos]) / np.sqrt(2.0)
-        By[ind_pos] = np.sqrt(2.0) * B[ind_pos] / np.sqrt(1e-1 + A[ind_pos] + D[ind_pos])
+        By[ind_pos] = np.sqrt(2.0) * B[ind_pos] / (np.sqrt(A[ind_pos] + D[ind_pos])+1e-10)
         Bx[ind_neg] = np.sign(db_BxBy[:][ind_neg]) * np.sqrt(A[ind_neg] + D[ind_neg]) / np.sqrt(2.0)
-        By[ind_neg] = -np.sqrt(2.0) * B[ind_neg] / np.sqrt(1e-1 + A[ind_neg] + D[ind_neg])
+        By[ind_neg] = -np.sqrt(2.0) * B[ind_neg] / (np.sqrt(A[ind_neg] + D[ind_neg])+1e-10)
         Bx[ind_zero] = 0.0
         By[ind_zero] = 0.0
 
