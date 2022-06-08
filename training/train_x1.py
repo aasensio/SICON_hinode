@@ -6,15 +6,15 @@ import h5py
 import scipy.io as io
 import scipy.ndimage as nd
 from tqdm import tqdm
-
+import sys
 sys.path.append('../models')
 
 import model_x1 as model
 import time
 import shutil
-import nvidia_smi
+import nvidia_smi # pip install nvidia-ml-py3
 import argparse
-import sys
+import os
 
 
 class dataset_spot(torch.utils.data.Dataset):
@@ -23,7 +23,7 @@ class dataset_spot(torch.utils.data.Dataset):
 
         noise_scale = 3e-3
 
-        self.root = '/scratch1/aasensio/hinode'
+        self.root = '/scratch/carlos/DEEPL/CUBOS'
         
         self.noise_scale = np.hstack([noise_scale*np.ones(112), 10*noise_scale*np.ones(112), 10*noise_scale*np.ones(112), 10*noise_scale*np.ones(112)])[:,None,None]
 
@@ -231,6 +231,7 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
         shutil.copyfile(filename, filename+'.best')
 
 
+
 class deep_3d_inversor(object):
     def __init__(self, batch_size, n_training=10000, n_validation=1000, n_pixels=32, gpu=0, synth_checkpoint='', vae_syn_checkpoint='', vae_mod_checkpoint=''):
         self.cuda = torch.cuda.is_available()
@@ -238,10 +239,11 @@ class deep_3d_inversor(object):
         self.gpu = gpu
         self.device = torch.device(f"cuda:{self.gpu}" if self.cuda else "cpu")
                 
-        nvidia_smi.nvmlInit()
-        self.handle = nvidia_smi.nvmlDeviceGetHandleByIndex(self.gpu) 
-        print("Computing in {0} : {1}".format(nvidia_smi.nvmlDeviceGetName(self.handle), self.device))
-               
+        if self.cuda:
+            nvidia_smi.nvmlInit()
+            self.handle = nvidia_smi.nvmlDeviceGetHandleByIndex(self.gpu) 
+            print("Computing in {0} : {1}".format(nvidia_smi.nvmlDeviceGetName(self.handle), self.device))
+                
         kwargs = {'num_workers': 4, 'pin_memory': False} if self.cuda else {}
 
         print("Defining inversion NN...")
@@ -270,12 +272,14 @@ class deep_3d_inversor(object):
 
         print("Network name : {0}".format(self.out_name))
 
-        # Copy model        
+        # Copy model
+        if not os.path.exists(root):
+            os.makedirs(root)        
         shutil.copyfile(model.__file__, '{0}.model.py'.format(self.out_name))
 
         np.savez('{0}.normalization'.format(self.out_name), minimum=self.dataset_train.phys_min, maximum=self.dataset_train.phys_max)        
 
-        self.optimizer = torch.optim.AdamW(self.model_inversion.parameters(), lr=self.lr)
+        self.optimizer = torch.optim.AdamW(self.model_inversion.parameters(), lr=self.lr,amsgrad=True)
         self.lossfn_L2 = nn.MSELoss().to(self.device)
         
         # self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer,
@@ -352,10 +356,12 @@ class deep_3d_inversor(object):
             else:
                 loss_avg = self.smooth * loss.item() + (1.0 - self.smooth) * loss_avg
                                                 
-            tmp = nvidia_smi.nvmlDeviceGetUtilizationRates(self.handle) 
+            if self.cuda:
+                tmp = nvidia_smi.nvmlDeviceGetUtilizationRates(self.handle) 
+                t.set_postfix(loss=loss_avg, lr=current_lr, gpu=tmp.gpu, mem=tmp.memory)
+            else:
+                t.set_postfix(loss=loss_avg, lr=current_lr)
 
-            t.set_postfix(loss=loss_avg, lr=current_lr, gpu=tmp.gpu, mem=tmp.memory)
-            
         self.loss.append(loss_avg)
 
     def test(self):
@@ -384,9 +390,11 @@ class deep_3d_inversor(object):
                 else:
                     loss_avg = self.smooth * loss.item() + (1.0 - self.smooth) * loss_avg
 
-                tmp = nvidia_smi.nvmlDeviceGetUtilizationRates(self.handle) 
-        
-                t.set_postfix(loss=loss_avg, lr=current_lr, gpu=tmp.gpu, mem=tmp.memory)
+                if self.cuda:
+                    tmp = nvidia_smi.nvmlDeviceGetUtilizationRates(self.handle) 
+                    t.set_postfix(loss=loss_avg, lr=current_lr, gpu=tmp.gpu, mem=tmp.memory)
+                else:
+                    t.set_postfix(loss=loss_avg, lr=current_lr)
 
         self.loss_val.append(loss_avg)
             
