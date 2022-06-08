@@ -23,7 +23,7 @@ class dataset_spot(torch.utils.data.Dataset):
 
         noise_scale = 3e-3
 
-        self.root = '/scratch/carlos/DEEPL/CUBOS'
+        self.root = '/scratch1/aasensio/hinode'
         
         self.noise_scale = np.hstack([noise_scale*np.ones(112), 10*noise_scale*np.ones(112), 10*noise_scale*np.ones(112), 10*noise_scale*np.ones(112)])[:,None,None]
 
