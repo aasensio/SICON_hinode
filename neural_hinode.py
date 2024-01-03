@@ -175,6 +175,12 @@ class deep_3d_inversion(object):
 
         
         tmp = '.'.join(self.checkpoint.split('/')[-1].split('.')[0:2])
+        
+        # Check if the output folder exists, if not create it
+        output_dir = os.path.dirname(parsed['output'])
+        if (not os.path.exists(output_dir)):
+            os.makedirs(output_dir)
+        
         f = h5py.File(f"{parsed['output']}", 'w')
         db_logtau = f.create_dataset('tau_axis', self.ltau.shape)
         db_T = f.create_dataset('T', output_model[0,:,:,:].shape)
@@ -203,18 +209,17 @@ class deep_3d_inversion(object):
         A = np.sign(db_Bx2_By2[:]) * db_Bx2_By2[:]**2    # I saved sign(Bx^2-By^2) * np.sqrt(Bx^2-By^2)
         B = np.sign(db_BxBy[:]) * db_BxBy[:]**2    # I saved sign(Bx*By) * np.sqrt(Bx*By)
 
-    # This quantity is obviously always >=0
+        # This quantity is obviously always >=0
         D = np.sqrt(A**2 + 4.0*B**2)
         
         ind_pos = np.where(B > 0)
         ind_neg = np.where(B < 0)
         ind_zero = np.where(B == 0)
         Bx[ind_pos] = np.sign(db_BxBy[:][ind_pos]) * np.sqrt(A[ind_pos] + D[ind_pos]) / np.sqrt(2.0)
-        By[ind_pos] = np.sqrt(2.0) * B[ind_pos] / (np.sqrt(A[ind_pos] + D[ind_pos])+1e-10)
         Bx[ind_neg] = np.sign(db_BxBy[:][ind_neg]) * np.sqrt(A[ind_neg] + D[ind_neg]) / np.sqrt(2.0)
-        By[ind_neg] = -np.sqrt(2.0) * B[ind_neg] / (np.sqrt(A[ind_neg] + D[ind_neg])+1e-10)
-        Bx[ind_zero] = 0.0
-        By[ind_zero] = 0.0
+        By = B/Bx
+        ind_zero = np.where(Bx == 0)
+        By[ind_zero] = np.sqrt(-A[ind_zero])
 
         db_Bx[:] = Bx
         db_By[:] = By
