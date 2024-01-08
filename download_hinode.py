@@ -13,6 +13,7 @@ def listFD(url, ext=''):
     soup = BeautifulSoup(page, 'html.parser')
     return [url + '/' + node.get('href') for node in soup.find_all('a') if node.get('href').endswith(ext)]
 
+
 def download(url, output, downloader):
     ext = 'fits'
     
@@ -26,7 +27,15 @@ def download(url, output, downloader):
 
     print("Downloading files...")
     if (downloader == 'wget'):
-        os.system("cat file_list | xargs -n 1 -P 8 wget -q --show-progress")
+        # Check if wget is >= 1.16 to use --show-progress
+        os.system("wget --version | head -n 1 | cut -d ' ' -f 3  > wget_version")
+        wget_version = float(np.loadtxt('wget_version'))
+        if (wget_version >= 1.16):
+            os.system("cat file_list | xargs -n 1 -P 8 wget -q --show-progress")
+        else:
+            os.system("cat file_list | xargs -n 1 -P 8 wget -q")
+        os.remove('wget_version')
+        
     if (downloader == 'curl'):
         os.system("cat file_list | xargs -n 1 -P 8 curl -O")
 
@@ -54,12 +63,13 @@ def download(url, output, downloader):
 
     print("Removing all FITS files")
     os.system("rm -f *.fits")
+    os.system("rm -f file_list")
 
 if (__name__ == '__main__'):
 
     parser = argparse.ArgumentParser(description='Download Hinode from http://www.lmsal.com/solarsoft/hinode/level1hao')
     parser.add_argument('--url', default=None, type=str,
-                    metavar='URL', help='Hinode URL - Example: http://www.lmsal.com/solarsoft/hinode/level1hao/2014/02/04/SP3D/20140204_190005', required=True)
+                    metavar='URL', help='Hinode URL - Example: https://www.lmsal.com/solarsoft/hinode/level1hao/2007/04/30/SP3D/20070430_183518/', required=True)
     parser.add_argument('--output', default=None, type=str,
                     metavar='OUTPUT', help='Output HDF5 file', required=True)
     parser.add_argument('--downloader', default='wget', type=str,
