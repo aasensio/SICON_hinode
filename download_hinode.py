@@ -29,7 +29,11 @@ def download(url, output, downloader):
     if (downloader == 'wget'):
         # Check if wget is >= 1.16 to use --show-progress
         os.system("wget --version | head -n 1 | cut -d ' ' -f 3  > wget_version")
-        wget_version = float(np.loadtxt('wget_version'))
+        f = open('wget_version', 'r')
+        wget_version = f.read()
+        f.close()
+        wget_version = '.'.join(wget_version.split('.')[0:2])
+        wget_version = float(wget_version)
         if (wget_version >= 1.16):
             os.system("cat file_list | xargs -n 1 -P 8 wget -q --show-progress")
         else:

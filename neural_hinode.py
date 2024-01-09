@@ -178,8 +178,9 @@ class deep_3d_inversion(object):
         
         # Check if the output folder exists, if not create it
         output_dir = os.path.dirname(parsed['output'])
-        if (not os.path.exists(output_dir)):
-            os.makedirs(output_dir)
+        if (output_dir != ''):
+            if (not os.path.exists(output_dir)):
+                os.makedirs(output_dir)
         
         f = h5py.File(f"{parsed['output']}", 'w')
         db_logtau = f.create_dataset('tau_axis', self.ltau.shape)
